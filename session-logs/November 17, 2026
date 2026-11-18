@@ -1,0 +1,40 @@
+# Session Recap: Sysmon Telemetry & GitHub Portfolio Setup
+**Date:** November 17, 2026  
+**Repository:** `dcaudel-cpu/SOC-Lab` (Private)  
+**Environment:** Oracle VirtualBox (`kali` @ 6 GB RAM + `Win-DC01` x86 @ 4 GB RAM on Host-Only `192.168.56.0/24`)
+
+---
+
+## ✅ What We Accomplished Tonight
+
+1. **Initialized the `SOC-Lab` GitHub Repository:**
+   * Created a private portfolio repository (`SOC-Lab`) with an **MIT License** and a pre-filled **`README.md`** featuring a Mermaid.js architecture diagram, VM specs table, and navigation links.
+   * Organized the directory structure into `Images/` and `setup-guides/`.
+2. **Deployed Microsoft Sysmon on `Win-DC01`:**
+   * Staged the 32-bit **`Sysmon.exe`** binary and the **SwiftOnSecurity** (`sysmonconfig-export.xml`) ruleset on Kali and transferred them offline over HTTP (`python3 -m http.server 8000`).
+   * Installed and verified the `Sysmon` service running on Windows.
+3. **Integrated Sysmon Logs with Wazuh SIEM:**
+   * Added the `Microsoft-Windows-Sysmon/Operational` `<localfile>` (`eventchannel`) block to `C:\Program Files (x86)\ossec-agent\ossec.conf` and verified ingestion via `ossec.log` (`INFO: (1951): Analyzing event log`).
+   * Created **Custom Rule `100100`** (`level="5"`) in `/var/ossec/etc/rules/local_rules.xml` on Kali to elevate baseline Level 0 Sysmon Process Creation events (`sysmon_event1`) into visible Threat Hunting alerts.
+4. **Captured Baselines & Published Documentation:**
+   * Saved clean VirtualBox snapshots of both VMs with Wazuh and Sysmon actively communicating.
+   * Uploaded verification screenshots into `Images/` and committed **`setup-guides/01-wazuh-deployment.md`** and **`setup-guides/02-windows-sysmon-agent.md`**.
+
+---
+
+## 🔧 Troubleshooting & Lessons Learned
+
+* **Sysinternals Download Redirects:** Default `wget` requests to `://sysinternals.com` return an HTML wrapper instead of the executable. Pulling directly from `://sysinternals.com` via browser or `curl` with a standard User-Agent retrieves the true PE binary.
+* **32-Bit (`x86`) vs. 64-Bit (`x64`) OS Architecture:** Running `Sysmon64.exe` on a 32-bit Windows guest triggers *"The specified executable is not a valid application for this OS platform."* Checking `[Environment]::Is64BitOperatingSystem` confirmed the x86 OS architecture, resolved by deploying **`Sysmon.exe`**.
+* **Post-Snapshot Agent Key Desynchronization:** Rolling back a VM snapshot created before agent enrollment causes a `client.keys` mismatch, resulting in `ERROR: Duplicate agent name: Win-DC01`. Fixed by removing the stale agent ID on the manager (`sudo /var/ossec/bin/manage_agents -r <ID>`), restarting `wazuh-manager`, and restarting `WazuhSvc` on Windows to trigger clean auto-enrollment.
+* **Wazuh Alert Level Thresholds:** Routine Sysmon logs are evaluated at **Level 0** by default and stay hidden from the main dashboard. Writing a custom child rule (`100100`) in `local_rules.xml` at **Level 5** surfaces process creation telemetry immediately for threat hunting.
+* **GitHub Markdown Path Sensitivity:** GitHub folder paths are case-sensitive (`Images/` vs. `images/`), and filenames containing spaces must be wrapped in angle brackets (`<../Images/file name.png>`) so images render reliably.
+
+---
+
+## 📋 Next Steps (Picking Up Tomorrow)
+
+1. **Draft `setup-guides/03-alert-tuning-and-fim.md`:** Tune noisy background processes out of Rule `100100` in `local_rules.xml` and document File Integrity Monitoring (FIM) and SCA baseline checks.
+2. **Draft `setup-guides/04-kali-attack-tooling.md`:** Document offensive testing tools on Kali (e.g., Impacket, Atomic Red Team scripts) for validation testing.
+3. **Back Up Configurations (`configs/`):** Upload sanitized copies of `local_rules.xml` and `sysmonconfig-export.xml`.
+4. **Run First Attack Scenario (`labs-and-scenarios/`):** Execute a simulated attack from Kali against `Win-DC01`, capture the triggered Sysmon alert in Wazuh, and document the investigation playbook.
