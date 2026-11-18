@@ -106,5 +106,4 @@ By default, Wazuh evaluates routine Sysmon telemetry at **Level 0** (below the d
 ---
 
 ## 📸 Verification Screenshots
-*(Upload your VM and Wazuh dashboard screenshots to `images/` and link them below)*
-<!-- ![Sysmon Alerts in Wazuh Dashboard](../images/wazuh-sysmon-alerts.png) -->
+
