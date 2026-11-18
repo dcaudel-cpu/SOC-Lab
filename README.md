@@ -51,5 +51,5 @@ graph LR
 ---
 
 ## 📸 Dashboard Preview
-*(Once you upload a screenshot to your `images/` folder, uncomment the line below to display it here)*
+
 
