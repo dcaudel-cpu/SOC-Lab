@@ -52,4 +52,4 @@ graph LR
 
 ## 📸 Dashboard Preview
 
-
+![Sysmon Alerts in Wazuh Dashboard](./Images/02-wazuh-sysmon-alerts.png)
