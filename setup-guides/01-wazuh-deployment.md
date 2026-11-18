@@ -75,5 +75,4 @@ Because `Win-DC01` is isolated from the external internet, the Wazuh Windows Age
 ---
 
 ## 📸 Verification Screenshots
-*(Upload your VM architecture and initial active agent screenshots to `images/` and link them below)*
-<!-- ![Wazuh Active Agent Overview](../images/wazuh-active-agent.png) -->
+[Wazuh deployment Screenshot]/Images/01-wazuh-deployment Screenshot.png
