@@ -1,0 +1,63 @@
+# 04: Kali Offensive Testing Tooling Setup
+
+## Overview
+To validate Wazuh detection rules and Sysmon telemetry, the Kali attack VM requires offensive enumeration, lateral movement, and atomic testing frameworks. All testing is strictly confined to the isolated lab subnet.
+
+---
+
+## 1. System Update & Core Packages
+Ensure Kali is up to date and has Python 3 virtual environment tools installed:
+```bash
+sudo apt update && sudo apt upgrade -y
+sudo apt install -y python3-pip python3-venv git curl jq
+```
+
+---
+
+## 2. Impacket Suite Installation
+Impacket provides Python classes for working with network protocols (SMB, MSRPC, Kerberos) and is essential for simulating Active Directory attacks.
+
+1. Install Impacket via `pipx` or system packages to avoid dependency conflicts:
+   ```bash
+   sudo apt install -y python3-impacket impacket-scripts
+   ```
+2. Verify installation by checking available scripts:
+   ```bash
+   which impacket-psexec impacket-secretsdump impacket-GetUserSPNs
+   ```
+
+---
+
+## 3. Atomic Red Team (`Invoke-AtomicRedTeam`)
+Atomic Red Team allows repeatable, mapped MITRE ATT&CK technique execution. For cross-platform execution from Kali or direct execution on target endpoints:
+
+### Option A: PowerShell on Kali (for Linux/Active Directory Atomics)
+1. Install PowerShell on Kali:
+   ```bash
+   sudo apt install -y powershell
+   ```
+2. Launch PowerShell (`pwsh`) and install the execution framework:
+   ```powershell
+   IEX (IWR 'https://githubusercontent.com' -UseBasicParsing)
+   Install-AtomicRedTeam -getAtomics -Force
+   ```
+
+### Option B: Staging on `Win-DC01` (For Local Endpoint Validation)
+When testing host-based execution techniques (e.g., `T1059.001`), temporarily exclude `C:\AtomicRedTeam` in Windows Defender on `Win-DC01` during active lab windows, execute the test, and revert Defender exclusions afterward.
+
+---
+
+## 4. Network Enumeration & Credential Validation Tools
+Install additional utilities for reconnaissance and validation scenarios:
+* **CrackMapExec / NetExec:** Active Directory enumeration and protocol testing.
+  ```bash
+  sudo apt install -y netexec
+  ```
+* **Evil-WinRM:** PowerShell remoting shell for post-exploitation simulation.
+  ```bash
+  sudo apt install -y evil-winrm
+  ```
+* **BloodHound / SharpHound:** Active Directory attack path mapping.
+  ```bash
+  sudo apt install -y bloodhound
+  ```
