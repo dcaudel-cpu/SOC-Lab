@@ -1,0 +1,12 @@
+### Nov 18, 2026 – Baseline Configuration & Vulnerability Assessment
+
+**Accomplished:**
+* Established the initial baseline security posture of the target environment prior to active testing.
+* Ran a CIS Benchmark compliance scan, recording an initial baseline score of **25%**.
+* Captured visual evidence (screenshots) of the unhardened configuration metrics to compare against post-remediation scans.
+* Prepared the environment for offensive testing using Kali Linux tools.
+
+**Lessons Learned:**
+* **Value of Baselines:** Recording an unhardened score (25%) is critical for demonstrating measurable risk reduction later in the lab lifecycle.
+* **Default Configurations:** Out-of-the-box system installations leave significant attack surfaces exposed, highlighting why automated configuration auditing (like CIS Benchmarks) is necessary before deploying assets to production.
+* **Documentation Discipline:** Capturing metrics *before* introducing attack traffic ensures data integrity when analyzing which alerts or failures stem from misconfigurations versus active exploitation.
