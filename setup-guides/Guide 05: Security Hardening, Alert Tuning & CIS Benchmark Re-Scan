@@ -1,0 +1,95 @@
+# Guide 05: Security Hardening, Alert Tuning & CIS Benchmark Re-Scan
+
+## 🎯 Objective
+Remediate vulnerabilities identified during baseline assessment and offensive testing (`Guide 02` & `Guide 04`), tune noisy SIEM alerts in Wazuh, and run a final CIS Benchmark scan on **`Win-DC01`** (`DC-COMPANY`) to measure measurable security posture improvement from the **25% initial baseline**.
+
+---
+
+## 🛠️ Phase 1: Active Directory & Endpoint Hardening (GPO)
+**Goal:** Close attack paths observed during Guide 04 reconnaissance and enforce CIS Benchmark controls via Group Policy on `Win-DC01`.
+
+1. **Restrict Anonymous SMB / SAMR Enumeration (`Null Auth:True` Fix):**
+   * Open **Group Policy Management** (`gpmc.msc`) -> Edit **Default Domain Controllers Policy** (or create a dedicated `Baseline-Hardening-GPO`).
+   * Navigate to: `Computer Configuration -> Policies -> Windows Settings -> Security Settings -> Local Policies -> Security Options`.
+   * Configure:
+     * **Network access: Do not allow anonymous enumeration of SAM accounts:** `Enabled`
+     * **Network access: Do not allow anonymous enumeration of SAM accounts and shares:** `Enabled`
+     * **Network access: Restrict anonymous access to Named Pipes and Shares:** `Enabled`
+2. **Enforce Account Lockout & Password Policy:**
+   * Navigate to: `Computer Configuration -> Policies -> Windows Settings -> Security Settings -> Account Policies`.
+   * Configure:
+     * **Password Policy -> Minimum password length:** `14 characters`
+     * **Password Policy -> Password must meet complexity requirements:** `Enabled`
+     * **Account Lockout Policy -> Account lockout threshold:** `5 invalid logon attempts`
+     * **Account Lockout Policy -> Account lockout duration:** `15 minutes`
+3. **Disable Legacy Protocols & Harden PowerShell Logging:**
+   * Navigate to: `Computer Configuration -> Policies -> Administrative Templates -> Windows Components -> Windows PowerShell`.
+   * Enable **Turn on PowerShell Script Block Logging** and **Turn on Module Logging** (`*`).
+4. **Apply Group Policy:**
+   ```powershell
+   gpupdate /force
+   ```
+
+---
+
+## 🎛️ Phase 2: SIEM Detection Engineering & False-Positive Tuning
+**Goal:** Suppress benign false positives observed during Guide 04 (such as `Rule 61640` firing on legitimate `explorer.exe` activity) without blinding real detections.
+
+1. **Inspect the Benign Alert (`Rule 61640`):**
+   * In Wazuh **Threat Hunting**, expand one of the `Rule 61640` (*Sysmon - Suspicious Process - explorer.exe*) events and note the legitimate parent process or image path (e.g., `C:\Windows\explorer.exe`).
+2. **Add a Tuning Exception in `local_rules.xml` (Wazuh Manager):**
+   * SSH into your Wazuh server and edit `/var/ossec/etc/rules/local_rules.xml`:
+     ```bash
+     sudo nano /var/ossec/etc/rules/local_rules.xml
+     ```
+   * Add a targeted child rule lowering the level to `0` (ignore) **only** when legitimate `C:\Windows\explorer.exe` is launched by `userinit.exe`:
+     ```xml
+     <group name="sysmon,tuning,">
+       <rule id="100105" level="0">
+         <if_sid>61640</if_sid>
+         <field name="win.eventdata.image">^C:\\Windows\\explorer.exe\$</field>
+         <field name="win.eventdata.parentImage">^C:\\Windows\\System32\\userinit.exe\$</field>
+         <description>Ignore benign Windows Explorer userinit startup event.</description>
+       </rule>
+     </group>
+     ```
+3. **Validate & Restart Wazuh Manager:**
+   ```bash
+   sudo /var/ossec/bin/wazuh-logtest
+   sudo systemctl restart wazuh-manager
+   ```
+
+---
+
+## 🔍 Phase 3: Purple Team Verification (Re-Testing Controls)
+**Goal:** Re-run reconnaissance from Kali (`192.168.56.101`) against `Win-DC01` (`192.168.56.10`) to confirm the anonymous enumeration remediation worked.
+
+1. **Re-Run SMB Null Session Check (Kali):**
+   ```bash
+   netexec smb 192.168.56.10 -u '' -p '' --shares
+   ```
+   * **Expected Result:** Anonymous logon (`[+] Company.local\:`) should now be rejected (`STATUS_ACCESS_DENIED` or `STATUS_LOGON_FAILURE`).
+
+---
+
+## 📊 Phase 4: Final CIS Benchmark Re-Scan & Posture Comparison
+**Goal:** Quantify the security improvement achieved across the lab lifecycle.
+
+1. **Run Post-Hardening CIS Assessment (`Win-DC01`):**
+   * Re-run your CIS Benchmark auditing tool (e.g., CIS-CAT Lite / PowerShell hardening audit script) using the exact same profile from Guide 02.
+2. **Document Before-and-After Metrics:**
+
+| Assessment Metric | Guide 02 (Initial Baseline) | Guide 05 (Post-Hardening) | Net Improvement |
+| :--- | :--- | :--- | :--- |
+| **CIS Compliance Score** | **25%** | **[Insert New %]** | **+[X]%** |
+| **Anonymous SMB / SAMR Auth** | Allowed (`Null Auth:True`) | Blocked via GPO | Remediated |
+| **PowerShell Script Block Logging** | Disabled | Enabled via GPO | Remediated |
+| **SIEM False-Positive Noise** | Unfiltered (`Rule 61640`) | Tuned (`Rule 100105`) | Tuned |
+
+---
+
+## 📸 Documentation Checklist (For GitHub Portfolio)
+* [ ] Screenshot of Group Policy Management (`gpmc.msc`) security settings.
+* [ ] Snippet/screenshot of custom tuning rule (`Rule 100105`) in `local_rules.xml`.
+* [ ] Screenshot of Kali `netexec` confirming `Null Auth` is now blocked.
+* [ ] Screenshot of final CIS Benchmark score showing improvement over the **25% baseline**.
