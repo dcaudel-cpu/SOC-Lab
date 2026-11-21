@@ -1,4 +1,4 @@
-# Guide 03: Alert Tuning, File Integrity Monitoring (FIM), & SCA Baselines
+# Guide 03: Sysmon Deployment & File Integrity Monitoring (FIM) 
 
 This guide documents tuning noisy Windows background processes out of custom Sysmon rules in **Wazuh**, configuring real-time **File Integrity Monitoring (FIM)** on `Win-DC01`, and reviewing **Security Configuration Assessment (SCA)** baseline checks to harden the domain controller.
 
