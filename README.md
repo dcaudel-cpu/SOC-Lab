@@ -37,7 +37,9 @@ graph LR
  * **[Guide 01: Lab Architecture & Virtual Network Setup](01-lab-architecture.md)** – Isolated Host-Only network (`192.168.56.0/24`), Windows Server 2025 Domain Controller (`Win-DC01`), Wazuh SIEM, and Kali Linux setup.
 * **[Guide 02: Active Directory & Baseline CIS Assessment](02-ad-baseline.md)** – Domain configuration (`Company.local`), organizational units, and initial CIS Benchmark scan (**25% baseline score**).
 * **[Guide 03: Sysmon Deployment & File Integrity Monitoring (FIM)](03-sysmon-fim.md)** – Enhanced Windows endpoint telemetry via Sysmon, Wazuh `syscheck` configuration for real-time file/registry monitoring, and baseline alert tuning.
-* **[Guide 04: Offensive Testing & Detection Validation](04-offensive-testing.md)** – Multi-stage adversary simulations from Kali Linux (`nmap`, `netexec`, `smbclient`, `msfvenom`, encoded PowerShell, registry persistence) mapped to MITRE ATT&CK and verified in Wazuh.
+* **[Guide 04: Offensive Testing & Detection Validation](04-offensive-testing.md)** – Multi-stage adversary simulations from Kali Linux (`nmap`, `netexec`, `smbclient`, `msfvenom`, encoded PowerShell, registry persistence) mapped to MITRE
+* **[Guide 05: hardening-remediation.md]
+* ATT&CK and verified in Wazuh.
 
 
 ---
