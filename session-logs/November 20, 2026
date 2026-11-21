@@ -1,0 +1,15 @@
+### Nov 20, 2026 – FIM Verification & Full Offensive Detection Validation (Guides 03 & 04)
+
+**Accomplished:**
+* Verified real-time File Integrity Monitoring (`syscheck`) in Wazuh (`ossec.conf`) on `Win-DC01` (`DC-COMPANY`) for critical directories, `hosts` file tampering, and registry persistence keys.
+* Rebuilt and executed **Guide 04 (Offensive Testing & Detection Validation)** from Kali Linux (`192.168.56.101`) against `Win-DC01` (`192.168.56.10`):
+  * **Reconnaissance:** Enumerated `DC-COMPANY` (`Company.local`), verifying enforced SMB signing (`signing:True`), disabled SMBv1, blocked anonymous share enumeration (`STATUS_ACCESS_DENIED`), and `ANONYMOUS LOGON` protocol behavior.
+  * **Credential Access (T1110.003):** Executed a controlled 4-password SMBv3/NTLMv2 spray via `smbclient`, triggering four consecutive **Wazuh Rule `60122`** (`Windows Event ID 4625`) alerts.
+  * **Payload Delivery & FIM (T1105 / T1565):** Simulated a binary payload drop in `C:\Users\Public\` and `hosts` file modification, triggering Windows Defender quarantine alongside high-severity Sysmon alerts (**Rule `92207`** Level 12 and **Rule `92213`** Level 15).
+  * **Execution & Persistence (T1059.001 / T1547.001):** Executed Base64-encoded PowerShell (`-Enc`) and added an `HKCU\...\Run` persistence key, triggering **Wazuh Rule `92066`** (`Sysmon Event ID 1`).
+* Completed post-test cleanup on `Win-DC01` and documented all findings, Wazuh Rule IDs, and evidence screenshots in GitHub.
+
+**Lessons Learned:**
+* **Protocol-Aware Testing:** Windows Server 2025 enforces strict SMBv3 and NTLMv2 negotiation by default, causing legacy brute-force tools (`hydra smb://`) to fail and requiring modern SMB clients (`smbclient`) for reliable testing.
+* **Defense-in-Depth Telemetry:** Combining Windows Defender prevention with Sysmon (`Event IDs 1, 3, 11`) and Wazuh FIM (`syscheck`) provides immediate visibility across recon, credential access, delivery, execution, and persistence.
+* **Continuous Alert Tuning:** Identifying benign triggers such as `Rule 61640` (`explorer.exe`) during active testing demonstrated that SIEM false-positive tuning is an ongoing process.
