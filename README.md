@@ -36,6 +36,7 @@ graph LR
 * **[`setup-guides/`](./setup-guides/)** — Step-by-step installation and configuration guides:
   * `01-wazuh-deployment.md` — Installing Wazuh on Kali Linux and configuring VirtualBox networking.
   * `02-windows-sysmon-agent.md` — Offline agent transfer, enrollment, and Sysmon configuration.
+  * 03- Alert Tuning, File Integrity Monitoring (FIM), and SCA Baselines
 * **[`configs/`](./configs/)** — Sanitized configuration backups, Sysmon XML schemas, and custom `local_rules.xml` tuning files.
 * **[`labs-and-scenarios/`](./labs-and-scenarios/)** — Threat simulations, File Integrity Monitoring (FIM) tests, and incident triage write-ups.
 * **[`images/`](./images/)** — Dashboard screenshots, alert breakdowns, and network diagrams.
