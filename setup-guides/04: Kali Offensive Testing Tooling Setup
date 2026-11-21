@@ -28,6 +28,23 @@ Simulate realistic adversary behaviors from **Kali Linux** against **`Win-DC01`*
    netexec smb <Win-DC01_IP> -u '' -p '' --shares
    enum4linux -a <Win-DC01_IP>
    ```
+#### Phase 1 Results & Detection Analysis (`DC-COMPANY` / `192.168.56.10`)
+
+**Command Executed:**
+```bash
+netexec smb 192.168.56.10 -u '' -p '' --shares
+```
+**Reconnaissance Findings:**
+* **Target Identification:** Enumerated hostname **`DC-COMPANY`**, Active Directory domain **`Company.local`**, and OS **Windows Server 2025 (Build 26100)**.
+* **Defensive Controls Verified:**
+  * **SMB Signing Enforced (`signing:True`):** Mitigates SMB NTLM relay attacks.
+  * **SMBv1 Disabled (`SMBv1:None`):** Protects against legacy SMB exploits (e.g., EternalBlue).
+  * **Share Enumeration Blocked (`STATUS_ACCESS_DENIED`):** Prevents unauthenticated users from listing sensitive SMB shares (`SYSVOL`, `NETLOGON`, etc.).
+* **Security Observation (`Null Auth:True`):** Although share listing was denied, SMB null session authentication succeeded (`[+] Company.local\:`), indicating anonymous RPC/SAMR queries could still be attempted unless explicitly restricted via Group Policy.
+
+**Wazuh SIEM Telemetry:**
+* Verified inbound SMB connection telemetry on port `445` originating from Kali (`192.168.56.101`) and observed anonymous network logon (`ANONYMOUS LOGON` / Logon Type 3) activity on `DC-COMPANY`.
+
 3. **Wazuh Verification:**
    * Check Wazuh **Security Events** for **Sysmon Event ID 3 (Network Connection)** and Windows Security logs showing anonymous logon/enumeration attempts.
 
