@@ -12,6 +12,17 @@ Simulate realistic adversary behaviors from **Kali Linux** against **`Win-DC01`*
    ```bash
    nmap -sC -sV -p 53,88,135,139,389,445,3389 <Win-DC01_IP> -oN nmap_dc01.txt
    ```
+#### Phase 1 Findings – Exposed Services (`Win-DC01` / `192.168.56.10`)
+
+| Port | Service | Security Relevance (Red vs. Blue Team) |
+| :--- | :--- | :--- |
+| **53/tcp** | DNS | Active Directory domain resolution; potential target for DNS enumeration/zone transfers. |
+| **88/tcp** | Kerberos | Core AD authentication; primary target for AS-REP Roasting and Kerberoasting. |
+| **135/tcp** | MSRPC | Remote procedure calls; used for lateral movement and WMI/DCOM enumeration. |
+| **139/445** | SMB | File sharing & AD SYSVOL/NETLOGON; prime target for null sessions, password spraying, and payload drops. |
+| **389/tcp** | LDAP | Active Directory directory queries; exposes user, group, and OU structure if unauthenticated binds are allowed. |
+| **3389/tcp** | RDP | Remote Desktop access; high-value target for credential brute-forcing. |
+
 2. **SMB & Null Session Enumeration (`CrackMapExec` / `NetExec` & `enum4linux`):**
    ```bash
    netexec smb <Win-DC01_IP> -u '' -p '' --shares
