@@ -136,3 +136,11 @@ After enforcing the targeted Group Policy hardening controls and restarting the 
 * **Targeted Attack-Path Closure:** Rather than blindly applying hundreds of restrictive CIS member-server checks that risk breaking Active Directory authentication, DNS, or replication, remediation focused strictly on closing the high-severity attack vectors exploited in **Guide 04** (`netexec` null-session enumeration, SMB relay, credential brute-forcing, and unlogged PowerShell execution).
 * **Operational Availability:** Because CIS Windows Server policies contain over 300 granular checks, resolving critical SMB, authentication, and logging vulnerabilities yields a measured percentage increase while maintaining 100% Domain Controller stability.
 
+<img width="1627" height="478" alt="05- Account lockout test Kali" src="https://github.com/user-attachments/assets/3e66f83e-b9db-4659-a2c2-0f86490c2540" />
+<img width="1714" height="1177" alt="05 - Wazuh lockout alert" src="https://github.com/user-attachments/assets/b6e262a6-b748-4d34-8a94-4f34d96e188a" />
+<img width="2517" height="1164" alt="05 - SCA increase to 27%" src="https://github.com/user-attachments/assets/9021786c-f778-4c00-a2c2-2e0713259d4c" />
+<img width="1639" height="589" alt="05 - Re-Test Anonymous SMB   SAMR Enumeration (Attack Validation)" src="https://github.com/user-attachments/assets/a72df736-1a5e-4cb1-8f3f-b984d8dc0477" />
+<img width="1417" height="1035" alt="05 - Phase 2 PW Hardening" src="https://github.com/user-attachments/assets/1fd0797b-4227-4235-8dba-3696f53ef388" />
+<img width="1558" height="946" alt="05 - Netexec Output" src="https://github.com/user-attachments/assets/26a07831-b0fe-40c4-905b-fa38dc7f08a9" />
+<img width="1545" height="1056" alt="05 - Local_rules xml" src="https://github.com/user-attachments/assets/7b2cbdb6-d92b-4e0a-acca-8f34079f6849" />
+<img width="1402" height="1003" alt="05 - Active Directory Hardening" src="https://github.com/user-attachments/assets/514623ef-d3bb-4293-b7a8-7d12b19265c9" />
