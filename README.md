@@ -1,57 +1,51 @@
 # SOC & Threat Detection Homelab (Wazuh SIEM)
 
-A virtualized Security Operations Center (SOC) and endpoint detection homelab built in **VirtualBox**. This project documents the deployment of a **Wazuh SIEM/XDR** environment, granular Windows telemetry collection via **Sysmon**, alert noise tuning, and simulated threat detection scenarios.
+A virtualized Security Operations Center (SOC) and endpoint detection homelab built in **Oracle VirtualBox**. This project documents the deployment of a **Wazuh SIEM/XDR** environment monitoring an Active Directory Domain Controller (`Company.local`), granular Windows telemetry collection via **Sysmon**, MITRE ATT&CK adversary simulations, alert noise tuning, and CIS Benchmark hardening.
 
 ---
 
 ## 🎯 Lab Objectives
 * Deploy and configure an all-in-one **Wazuh Manager, Indexer, and Dashboard** on Linux.
-* Isolate virtual machines on a dedicated hypervisor network to safely conduct security testing.
-* Onboard a **Windows endpoint** with **Sysmon** to capture deep process, network, and registry telemetry.
-* Reduce false positives through custom rule tuning (`local_rules.xml`) and baseline Security Configuration Assessments (SCA).
-* Simulate real-world attack techniques and document end-to-end alert triage and investigation workflows.
+* Isolate virtual machines on a dedicated hypervisor network (`192.168.56.0/24`) to safely conduct security testing.
+* Build an Active Directory Domain Controller (**`Win-DC01`** / **`Company.local`**) instrumented with **Sysmon** and **File Integrity Monitoring (FIM)** for deep process, network, file, and registry telemetry.
+* Simulate multi-stage attack techniques from **Kali Linux** mapped to **MITRE ATT&CK** and validate end-to-end alert triage.
+* Reduce false positives through custom rule tuning (`local_rules.xml`) and harden the domain using Group Policy Objects (GPOs) measured against **CIS Benchmarks**.
 
 ---
 
 ## 🏗️ Lab Architecture & Virtual Machines
 
-All virtual machines run inside **Oracle VirtualBox** on an isolated **Host-Only / Internal Network** (`<SUBNET_CIDR>`, e.g., `192.168.56.0/24`) with clean baseline snapshots saved prior to testing.
+All virtual machines run inside **Oracle VirtualBox** on an isolated **Host-Only Network** (`192.168.56.0/24`) with clean baseline snapshots saved prior to testing.
 
 ```mermaid
 graph LR
-    subgraph VirtualBox Isolated Network
-        A[Kali Linux VM<br/>Wazuh Manager & Dashboard<br/>6 GB RAM] <-->|Port 1514/1515<br/>Agent Telemetry| B[Windows VM<br/>Monitored Endpoint + Sysmon<br/>4 GB RAM]
+    subgraph VirtualBox Isolated Network [192.168.56.0/24]
+        A[Kali Linux VM<br/>Wazuh SIEM & Attack Node<br/>6 GB RAM] <-->|Port 1514/1515<br/>Agent Telemetry| B[Win-DC01<br/>Windows Server 2025 DC<br/>Company.local • 4 GB RAM]
     end
 ```
 
-| VM Role | Operating System | Allocated RAM | Network Adapter | Key Services & Tools |
+| VM Role | Hostname / OS | Allocated RAM | Network Adapter | Key Services & Tools |
 | :--- | :--- | :--- | :--- | :--- |
-| **SIEM Server / Red Team** | Kali Linux | 6 GB | Host-Only / Internal | Wazuh Manager, Wazuh Indexer, Wazuh Dashboard, Python HTTP Server (Agent Hosting) |
-| **Monitored Endpoint** | Windows | 4 GB | Host-Only / Internal | Wazuh Agent, Microsoft Sysmon |
+| **SIEM Server & Red Team Node** | Kali Linux | 6 GB | Host-Only (`192.168.56.0/24`) | Wazuh Manager, Indexer & Dashboard, `nmap`, `netexec`, `smbclient`, `msfvenom` |
+| **Domain Controller / Monitored Endpoint** | `Win-DC01` (Windows Server 2025) | 4 GB | Host-Only (`192.168.56.0/24`) | Active Directory (`Company.local`), DNS, Wazuh Agent, Microsoft Sysmon |
+
+*(Note: Update the table above if your Wazuh Server runs on a separate Ubuntu/Linux VM from Kali.)*
 
 ---
 
 ## 📂 Repository Structure
 
 * **[`setup-guides/`](./setup-guides/)** — Step-by-step installation and configuration guides:
- * **[Guide 01: Lab Architecture & Virtual Network Setup](01-lab-architecture.md)** – Isolated Host-Only network (`192.168.56.0/24`), Windows Server 2025 Domain Controller (`Win-DC01`), Wazuh SIEM, and Kali Linux setup.
-* **[Guide 02: Active Directory & Baseline CIS Assessment](02-ad-baseline.md)** – Domain configuration (`Company.local`), organizational units, and initial CIS Benchmark scan (**25% baseline score**).
-* **[Guide 03: Sysmon Deployment & File Integrity Monitoring (FIM)](03-sysmon-fim.md)** – Enhanced Windows endpoint telemetry via Sysmon, Wazuh `syscheck` configuration for real-time file/registry monitoring, and baseline alert tuning.
-* **[Guide 04: Offensive Testing & Detection Validation](04-offensive-testing.md)** – Multi-stage adversary simulations from Kali Linux (`nmap`, `netexec`, `smbclient`, `msfvenom`, encoded PowerShell, registry persistence) mapped to MITRE
-* **[Guide 05: Security Hardening, Alert Tuning & CIS Benchmark Re-Scan]
-* ATT&CK and verified in Wazuh.
-
+  * **[Guide 01: Lab Architecture & Virtual Network Setup](./setup-guides/01-lab-architecture.md)** – Isolated Host-Only network (`192.168.56.0/24`), Windows Server 2025 Domain Controller (`Win-DC01`), Wazuh SIEM, and Kali Linux setup.
+  * **[Guide 02: Active Directory & Baseline CIS Assessment](./setup-guides/02-ad-baseline.md)** – Domain configuration (`Company.local`), organizational units, and initial CIS Benchmark scan (**25% baseline score**).
+  * **[Guide 03: Sysmon Deployment & File Integrity Monitoring (FIM)](./setup-guides/03-sysmon-fim.md)** – Enhanced Windows endpoint telemetry via Sysmon, Wazuh `syscheck` configuration for real-time file/registry monitoring, and baseline alert tuning.
+  * **[Guide 04: Offensive Testing & Detection Validation](./setup-guides/04-offensive-testing.md)** – Multi-stage adversary simulations from Kali Linux (`nmap`, `netexec`, `smbclient`, `msfvenom`, encoded PowerShell, registry persistence) mapped to MITRE ATT&CK and verified in Wazuh.
+  * **[Guide 05: Security Hardening, Alert Tuning & CIS Benchmark Re-Scan](./setup-guides/05-hardening-remediation.md)** – Post-simulation artifact cleanup, granular Wazuh `local_rules.xml` tuning (Rule 61618), Active Directory GPO hardening, and CIS Benchmark compliance verification.
 
 ---
 
 ## ✅ Completed Milestones & Key Takeaways
-* **Environment Isolation & Snapshots:** Configured VirtualBox isolated networking and established clean recovery snapshots before deploying security tooling.
-* **Offline Agent Deployment:** Hosted the Wazuh Windows Agent MSI locally from Kali Linux to enroll the Windows VM without exposing the lab environment to external traffic.
-* **Telemetry & Noise Tuning:** Integrated Sysmon event channels into the Wazuh agent configuration (`ossec.conf`) and tuned high-severity baseline alert noise using custom rules.
-* **Compliance & Integrity:** Evaluated baseline system hardening with Wazuh Security Configuration Assessment (SCA) and verified File Integrity Monitoring (FIM) alerts.
-
----
-
-## 📸 Dashboard Preview
-
-![Sysmon Alerts in Wazuh Dashboard](./Images/02-wazuh-sysmon-alerts.png)
+* **Environment Isolation & Snapshots:** Configured VirtualBox isolated networking (`192.168.56.0/24`) and established clean recovery snapshots prior to offensive testing.
+* **Active Directory & Telemetry Engineering:** Promoted `Win-DC01` to a Windows Server 2025 Domain Controller (`Company.local`) and integrated Microsoft Sysmon and Wazuh FIM (`syscheck`) for real-time process, network, and registry monitoring.
+* **Adversary Simulation & Detection Validation:** Executed reconnaissance, SMB enumeration, payload generation, encoded PowerShell, and registry persistence from Kali Linux, mapping detections to MITRE ATT&CK in Wazuh.
+* **Alert Tuning & CIS Hardening:** Eliminated false-positive alert fatigue (Rule 61618 `svchost.exe`) via `local_rules.xml` and remediated domain vulnerabilities via GPOs, improving compliance from the **25% CIS baseline**.
