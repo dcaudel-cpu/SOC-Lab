@@ -36,11 +36,11 @@ graph LR
 ## 📂 Repository Structure
 
 * **[`setup-guides/`](./setup-guides/)** — Step-by-step installation and configuration guides:
-  * **[Guide 01: Lab Architecture & Virtual Network Setup](./setup-guides/01-lab-architecture.md)** – Isolated Host-Only network (`192.168.56.0/24`), Windows Server 2025 Domain Controller (`Win-DC01`), Wazuh SIEM, and Kali Linux setup.
-  * **[Guide 02: Active Directory & Baseline CIS Assessment](./setup-guides/02-ad-baseline.md)** – Domain configuration (`Company.local`), organizational units, and initial CIS Benchmark scan (**25% baseline score**).
-  * **[Guide 03: Sysmon Deployment & File Integrity Monitoring (FIM)](./setup-guides/03-sysmon-fim.md)** – Enhanced Windows endpoint telemetry via Sysmon, Wazuh `syscheck` configuration for real-time file/registry monitoring, and baseline alert tuning.
-  * **[Guide 04: Offensive Testing & Detection Validation](./setup-guides/04-offensive-testing.md)** – Multi-stage adversary simulations from Kali Linux (`nmap`, `netexec`, `smbclient`, `msfvenom`, encoded PowerShell, registry persistence) mapped to MITRE ATT&CK and verified in Wazuh.
-  * **[Guide 05: Security Hardening, Alert Tuning & CIS Benchmark Re-Scan](./setup-guides/05-hardening-remediation.md)** – Post-simulation artifact cleanup, granular Wazuh `local_rules.xml` tuning (Rule 61618), Active Directory GPO hardening, and CIS Benchmark compliance verification.
+  * **[Guide 01: Lab Architecture & Virtual Network Setup](./setup-guides/Guide%2001%3A%20Lab%20Architecture%20%26%20Virtual%20Network%20Setup.md)** – Isolated Host-Only network (`192.168.56.0/24`), Windows Server 2025 Domain Controller (`Win-DC01`), Wazuh SIEM, and Kali Linux setup.
+  * **[Guide 02: Active Directory & Baseline CIS Assessment](./setup-guides/Guide%2002%3A%20Active%20Directory%20%26%20Baseline%20CIS%20Assessment.md)** – Domain configuration (`Company.local`), organizational units, and initial CIS Benchmark scan (**25% baseline score**).
+  * **[Guide 03: Sysmon Deployment & File Integrity Monitoring (FIM)](./setup-guides/Guide%2003%3A%20Sysmon%20Deployment%20%26%20File%20Integrity%20Monitoring%20(FIM).md)** – Enhanced Windows endpoint telemetry via Sysmon, Wazuh `syscheck` configuration for real-time file/registry monitoring, and baseline alert tuning.
+  * **[Guide 04: Offensive Testing & Detection Validation](./setup-guides/Guide%2004%3A%20Offensive%20Testing%20%26%20Detection%20Validation.md)** – Multi-stage adversary simulations from Kali Linux (`nmap`, `netexec`, `smbclient`, `msfvenom`, encoded PowerShell, registry persistence) mapped to MITRE ATT&CK and verified in Wazuh.
+  * **[Guide 05: Security Hardening, Alert Tuning & CIS Benchmark Re-Scan](./setup-guides/Guide%2005%3A%20Security%20Hardening%2C%20Alert%20Tuning%20%26%20CIS%20Benchmark%20Re-Scan.md)** – Post-simulation artifact cleanup, granular Wazuh `local_rules.xml` tuning (Rule 61618), Active Directory GPO hardening, and CIS Benchmark compliance verification.
 
 ---
 
