@@ -75,7 +75,6 @@ Because `Win-DC01` is isolated from the external internet, the Wazuh Windows Age
 ---
 
 ## 📸 Verification Screenshots
-## 📸 Verification Screenshots
 
 ![Wazuh Deployment Screenshot](<../Images/01-wazuh-deployment Screenshot.png>)
 
