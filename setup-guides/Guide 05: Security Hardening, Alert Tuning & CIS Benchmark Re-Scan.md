@@ -126,17 +126,13 @@ netexec smb 192.168.56.10 -u '' -p '' --shares
 ```powershell
 Restart-Service -Name WazuhSvc
 ```
-2. In the **Wazuh Dashboard**, navigate to **Modules > Security Configuration Assessment (SCA)** and select **Win-DC01**.
-3. Document the updated compliance score (e.g., **25% Baseline -> 65%+ Post-Hardening**) and capture screenshots of passed checks (Account Policies, SMB Signing, Anonymous Access Restrictions) to include in your repository.
-
----
 
 ## Summary of Remediation Impact
 
-| Attack Vector (Guide 04) | Remediation Control Applied | Verification Method |
-| :--- | :--- | :--- |
-| Anonymous SMB Enumeration | Disabled anonymous SAM/share enumeration via GPO | `netexec` null session blocked |
-| SMB Relay / MITM | Enforced mandatory SMB Signing | `netexec` confirms `signing:True` |
-| Credential Brute-Forcing | 5-attempt Account Lockout + 14-char Password Policy | Wazuh SCA Check Passed |
-| Encoded PowerShell Payloads | Enabled Script Block & Module Logging | Event ID 4104 captured in Wazuh |
-| Alert Fatigue (`svchost.exe`) | Granular `local_rules.xml` exception (`Rule 100105`) | False positives eliminated |
+### CIS Benchmark Re-Scan Results (25% -> 27%)
+After enforcing the targeted Group Policy hardening controls and restarting the Wazuh Agent on `Win-DC01`, the Security Configuration Assessment (SCA) re-scan confirmed an increase in compliance from **25% to 27%**.
+
+#### Why Risk-Based Remediation Was Prioritized Over Score Chasing
+* **Targeted Attack-Path Closure:** Rather than blindly applying hundreds of restrictive CIS member-server checks that risk breaking Active Directory authentication, DNS, or replication, remediation focused strictly on closing the high-severity attack vectors exploited in **Guide 04** (`netexec` null-session enumeration, SMB relay, credential brute-forcing, and unlogged PowerShell execution).
+* **Operational Availability:** Because CIS Windows Server policies contain over 300 granular checks, resolving critical SMB, authentication, and logging vulnerabilities yields a measured percentage increase while maintaining 100% Domain Controller stability.
+
