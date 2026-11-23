@@ -1,0 +1,40 @@
+# Lab Session Log — November 22, 2026
+
+## Session Overview
+* **Date:** November 22, 2026
+* **Environment:** Isolated Host-Only Lab (`192.168.56.0/24`)
+* **Target / Monitored Systems:** `Win-DC01` (Windows Server 2025 Domain Controller, `Company.local`), Wazuh SIEM Manager, Kali Linux
+* **Primary Focus:** SIEM Alert Triage (Sysmon Rule 61618), False Positive Tuning, and Post-Exploitation Hardening Documentation (`05-hardening-remediation.md`)
+
+---
+
+## Timeline & Key Activities
+
+### 1. Environment Maintenance (Kali Linux)
+* **Issue:** Encountered a corrupt Zsh history file (`~/.zsh_history`) on the Kali Linux attack/management node.
+* **Resolution:** Extracted readable command history into a clean recovery file and rebuilt `.zsh_history` to restore shell logging and command recall without losing prior offensive testing commands.
+
+### 2. SIEM Alert Triage & Investigation (`20:43 CST`)
+* **Alert Observed:** `Nov 22, 2026 @ 20:43:29.148 | Win-DC01 | Sysmon - Suspicious Process - svchost.exe | Level 12 | Rule 61618`
+* **Analysis:**
+  * Reviewed Sysmon telemetry (`data.win.eventdata`) for anomalous `svchost.exe` execution (MITRE ATT&CK **T1055 / T1036**).
+  * Verified key validation criteria to distinguish benign Windows Server 2025 background/Active Directory tasks from malicious process injection or masquerading:
+    * `image`: `C:\Windows\System32\svchost.exe`
+    * `parentImage`: `C:\Windows\System32\services.exe`
+    * `commandLine`: Presence of valid `-k` service group flags.
+
+### 3. Detection Engineering & Remediation Documentation
+* **Deliverable Created:** [`05-hardening-remediation.md`](./setup-guides/05-hardening-remediation.md)
+* **Key Controls & Workflows Documented:**
+  * **Containment & Eradication:** PowerShell procedures to purge Guide 04 test artifacts (registry `Run` keys and staging binaries) and verify Wazuh FIM (`syscheck`) tracking.
+  * **SIEM Tuning:** Authored granular Wazuh `local_rules.xml` exception (`Rule 100105`) to suppress verified benign `svchost.exe` alerts on `Win-DC01` while preserving detection for anomalous parent processes or non-System32 execution paths.
+  * **Active Directory Hardening (`Company.local`):** Defined Group Policy Object (GPO) baselines to enforce mandatory SMB signing, disable SMBv1, block anonymous SAM/share enumeration, strengthen password/lockout policies, and enable PowerShell Script Block & Module Logging.
+  * **Validation Plan:** Established purple-team verification via `netexec` and Wazuh Security Configuration Assessment (SCA) re-scanning to measure improvement over the initial **25% CIS Benchmark baseline**.
+
+---
+
+## Next Steps
+- [ ] Apply the `local_rules.xml` tuning rule (`100105`) on the Wazuh Manager and validate via `wazuh-logtest`.
+- [ ] Enforce the documented GPO hardening settings on `Win-DC01` and run `gpupdate /force`.
+- [ ] Execute the post-hardening Wazuh SCA scan and record the updated CIS Benchmark score in `05-hardening-remediation.md`.
+- [ ] Commit `05-hardening-remediation.md` and session notes to the GitHub repository.
