@@ -90,6 +90,7 @@ Wazuh's `syscheck` module detects unauthorized file drops, hosts file tampering,
 ---
 
 ## 📸 Verification Screenshots
+<img width="3403" height="826" alt="03-FIM Test Screenshot" src="https://github.com/user-attachments/assets/64b81458-435b-404e-96d7-c4a8ef552c77" />
+<img width="1707" height="1153" alt="03-sca-baseline-25-percent" src="https://github.com/user-attachments/assets/c88eb4a7-a8a8-4fef-a6db-4f82ff3e00f7" />
 
-![Alert Tuning and FIM Screenshot](<../Images/03-alert-tuning-fim Screenshot.png>)
 
