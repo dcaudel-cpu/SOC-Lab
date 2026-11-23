@@ -86,8 +86,11 @@ reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Run" /v "UpdaterService"
 * **Wazuh Rule `92066` (Level 4):** *`whoami.exe` binary in a suspicious location launched by `powershell.exe`* (`Sysmon Event ID 1` process creation tracking parent-child execution from Base64-encoded PowerShell).
 * **Registry Persistence Monitoring:** Verified `HKCU\...\Run` modification telemetry and restored all modified files/registry keys during post-test cleanup.
 
-![Phase 4 Wazuh Sysmon PowerShell Execution Alert](images/04-phase4-wazuh-92066.png)
-
+<img width="1713" height="1252" alt="04- Wazuh Detection of failed attempts" src="https://github.com/user-attachments/assets/32bb294b-8d0b-4dfa-bc6c-9366e886e6a0" />
+<img width="3423" height="1173" alt="04- Alert on Wazuh " src="https://github.com/user-attachments/assets/ad4ff909-4e8e-4fd0-96ef-0eebc68a8860" />
+<img width="3427" height="1143" alt="04 - Rule ID 92066_Rule ID 92213" src="https://github.com/user-attachments/assets/09edfde7-d01e-43aa-ad2b-410f568410d3" />
+<img width="1564" height="856" alt="04 - Recon Findings" src="https://github.com/user-attachments/assets/fd7397a2-1a93-4104-a227-80887c6274cc" />
+<img width="1605" height="562" alt="04 - Hydra PW Attempts" src="https://github.com/user-attachments/assets/e4a76cca-21f3-49d0-a69c-f7ed25124953" />
 
 ---
 
