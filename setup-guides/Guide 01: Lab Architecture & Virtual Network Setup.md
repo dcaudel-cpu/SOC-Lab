@@ -19,7 +19,7 @@ To keep the Wazuh Indexer and Dashboard responsive while running live endpoint t
 | VM Hostname | Role | Operating System | RAM Allocated | Network Configuration |
 | :--- | :--- | :--- | :--- | :--- |
 | **kali** | SIEM Server & Red Team Node | Kali Linux | 6 GB | Host-Only (`192.168.56.101`) + Temporary NAT (for package downloads) |
-| **Win-DC01** | Monitored Endpoint | Windows (x86) | 4 GB | Host-Only (`192.168.56.x`) |
+| **Win-DC01** | Monitored Endpoint | Windows Server 2025 | 4 GB | Host-Only (`192.168.56.10`) |
 
 ### Snapshot & Isolation Best Practices
 * **Network Isolation:** Once core packages are downloaded on Kali, both VMs communicate exclusively over the isolated Host-Only subnet (`192.168.56.0/24`), preventing simulated malicious traffic from touching the host network.
@@ -76,5 +76,4 @@ Because `Win-DC01` is isolated from the external internet, the Wazuh Windows Age
 
 ## 📸 Verification Screenshots
 
-![Wazuh Deployment Screenshot](<../Images/01-wazuh-deployment Screenshot.png>)
-
+![Wazuh Deployment Screenshot](../Images/01-wazuh-deployment%20Screenshot.png)
