@@ -115,9 +115,23 @@ In this phase of the homelab, we transition from passive detection to **automate
 * **Defense-in-Depth Interaction:** Windows CIS Account Lockout policies and Wazuh Active Response operate independently—combining host-level account hardening with automated network containment stops both credential guessing and follow-on lateral movement.
 
 ## Verification Screenshots
-<img width="1711" height="901" alt="06-06-wazuh-dashboard-active-response" src="https://github.com/user-attachments/assets/4b6342ab-12e8-4315-937c-76e29e58b137" />
-<img width="3405" height="627" alt="06-05-kali-ping-restored" src="https://github.com/user-attachments/assets/723e7c9d-04b9-4634-af37-9c0054aad106" />
-<img width="1726" height="679" alt="06-04-win-dc01-active-response-log" src="https://github.com/user-attachments/assets/59a541f2-cdc3-47c7-904b-59ea2f018d90" />
-<img width="1516" height="615" alt="06-03-win-dc01-wazuh-firewall-block" src="https://github.com/user-attachments/assets/6aebb8f9-223d-45f9-9f90-2215bede2f51" />
-<img width="1747" height="873" alt="06-02-wazuh-logon-failure-alerts" src="https://github.com/user-attachments/assets/377e3c25-6b1d-4648-bc33-c99f4bdc8676" />
-<img width="1657" height="900" alt="06-01-netexec-smb-bruteforce-blocked png" src="https://github.com/user-attachments/assets/eed63f19-2d60-41a1-bd4f-dd2b45d69b60" />
+## Verification Screenshots
+
+### 1. Automated Containment on Kali (`netexec` Timeout)
+![Kali SMB Brute-Force Blocked](./images/06-01-netexec-smb-bruteforce-blocked.png)
+
+### 2. Detection in Wazuh (`Rule 60122` Logon Failures)
+![Wazuh Logon Failure Alerts](./images/06-02-wazuh-logon-failure-alerts.png)
+
+### 3. Windows Defender Firewall Block (`Get-NetFirewallRule`)
+![Win-DC01 Wazuh Firewall Block](./images/06-03-win-dc01-wazuh-firewall-block.png)
+
+### 4. Local Active Response Execution (`active-responses.log`)
+![Win-DC01 Active Response Log](./images/06-04-win-dc01-active-response-log.png)
+
+### 5. Restored Connectivity After Cleanup (`ping`)
+![Kali Ping Restored](./images/06-05-kali-ping-restored.png)
+
+### 6. Active Response Audit Event in Wazuh Dashboard
+![Wazuh Dashboard Active Response](./images/06-06-wazuh-dashboard-active-response.png)
+
