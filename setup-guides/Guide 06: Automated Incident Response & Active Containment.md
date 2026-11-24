@@ -56,7 +56,7 @@ In this phase of the homelab, we transition from passive detection to **automate
 2. **Observe Automated Containment:**
    `netexec` initially resolves the SMB banner for `DC-COMPANY`, then immediately stalls with connection timeouts (`The NETBIOS connection with the remote host timed out`) as Windows Defender Firewall drops all subsequent packets from Kali's IP.
 
-   ![Kali SMB Brute-Force Blocked](./images/06-01-netexec-smb-bruteforce-blocked.png)
+   ![Kali SMB Brute-Force Blocked](../Images/06-01-netexec-smb-bruteforce-blocked.png.png)
 
 ---
 
@@ -65,7 +65,7 @@ In this phase of the homelab, we transition from passive detection to **automate
 1. **Inspect Logon Failure Alerts in Wazuh:**
    Navigate to **Explore > Threat Hunting** in the Wazuh Dashboard and filter for `rule.id:(60122 OR 60204)`. Because blocking the Wazuh Manager's IP temporarily pauses agent log shipping on port `1514`, buffered Windows `Event ID 4625` alerts flush into the dashboard once communication resumes.
 
-   ![Wazuh Logon Failure Alerts](./images/06-02-wazuh-logon-failure-alerts.png)
+   ![Wazuh Logon Failure Alerts](../Images/06-02-wazuh-logon-failure-alerts.png)
 
 2. **Verify Windows Defender Firewall Block on `Win-DC01`:**
    Open PowerShell as Administrator on `Win-DC01` and confirm Wazuh dynamically created Inbound and Outbound block rules:
@@ -73,7 +73,7 @@ In this phase of the homelab, we transition from passive detection to **automate
    Get-NetFirewallRule -DisplayName "*WAZUH*" | Select-Object DisplayName, Enabled, Action, Direction
    ```
 
-   ![Win-DC01 Wazuh Firewall Block](./images/06-03-win-dc01-wazuh-firewall-block.png)
+   ![Win-DC01 Wazuh Firewall Block](../Images/06-03-win-dc01-wazuh-firewall-block.png)
 
 3. **Verify Local Active Response Execution Logs:**
    Inspect `active-responses.log` on `Win-DC01` to confirm `netsh.exe` executed upon receiving the Manager's trigger:
@@ -81,7 +81,7 @@ In this phase of the homelab, we transition from passive detection to **automate
    Select-String -Path "C:\Program Files (x86)\ossec-agent\active-response\active-responses.log" -Pattern "netsh.exe" | Select-Object -Last 6 | ForEach-Object { \$_.Line -replace '\{.*\}', '' }
    ```
 
-   ![Win-DC01 Active Response Log](./images/06-04-win-dc01-active-response-log.png)
+   ![Win-DC01 Active Response Log](../Images/06-04-win-dc01-active-response-log.png)
 
 ---
 
@@ -100,12 +100,12 @@ In this phase of the homelab, we transition from passive detection to **automate
    ping -c 2 192.168.56.10
    ```
 
-   ![Kali Ping Restored](./images/06-05-kali-ping-restored.png)
+   ![Kali Ping Restored](../Images/06-05-kali-ping-restored.png)
 
 3. **Confirm Active Response Audit Events in Wazuh Dashboard:**
    In **Explore > Threat Hunting**, filter by `rule.groups:"active_response"` to verify the full detection-to-containment audit trail in the SIEM.
 
-   ![Wazuh Dashboard Active Response](./images/06-06-wazuh-dashboard-active-response.png)
+   ![Wazuh Dashboard Active Response](../Images/06-06-wazuh-dashboard-active-response.png)
 
 ---
 
@@ -114,24 +114,4 @@ In this phase of the homelab, we transition from passive detection to **automate
 * **Manager/Attacker Co-Location Impact:** Hosting the Wazuh Manager on the same Kali VM used for attack simulations causes the Windows agent to temporarily buffer telemetry while the Manager's IP is blocked at the firewall. In production, the SIEM Manager IP should always be explicitly whitelisted under `<global><white_list>`.
 * **Defense-in-Depth Interaction:** Windows CIS Account Lockout policies and Wazuh Active Response operate independently—combining host-level account hardening with automated network containment stops both credential guessing and follow-on lateral movement.
 
-## Verification Screenshots
-## Verification Screenshots
-
-### 1. Automated Containment on Kali (`netexec` Timeout)
-![Kali SMB Brute-Force Blocked](./images/06-01-netexec-smb-bruteforce-blocked.png)
-
-### 2. Detection in Wazuh (`Rule 60122` Logon Failures)
-![Wazuh Logon Failure Alerts](./images/06-02-wazuh-logon-failure-alerts.png)
-
-### 3. Windows Defender Firewall Block (`Get-NetFirewallRule`)
-![Win-DC01 Wazuh Firewall Block](./images/06-03-win-dc01-wazuh-firewall-block.png)
-
-### 4. Local Active Response Execution (`active-responses.log`)
-![Win-DC01 Active Response Log](./images/06-04-win-dc01-active-response-log.png)
-
-### 5. Restored Connectivity After Cleanup (`ping`)
-![Kali Ping Restored](./images/06-05-kali-ping-restored.png)
-
-### 6. Active Response Audit Event in Wazuh Dashboard
-![Wazuh Dashboard Active Response](./images/06-06-wazuh-dashboard-active-response.png)
 
