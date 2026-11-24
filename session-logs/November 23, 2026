@@ -1,0 +1,28 @@
+# Session Log — November 23, 2026
+
+**Environment:** Kali Linux (`192.168.56.101` — Wazuh Manager/Indexer/Dashboard) & `Win-DC01` (`DC-COMPANY`, `192.168.56.10` — Windows Server 2025)  
+**Focus:** Automated Threat Containment (`Guide 06`) & Repository Documentation Audit
+
+---
+
+## 🛠️ Activities Completed
+
+### 1. Configured OS-Specific Wazuh Active Response (`netsh.exe`)
+* Identified that Wazuh's default `firewall-drop` binary is Linux-specific (`iptables`/`nftables`) and fails on Windows endpoints when `<location>local</location>` is configured.
+* Updated `/var/ossec/etc/ossec.conf` on the Wazuh Manager to execute `netsh` (`netsh.exe`) on Windows logon failure rules `60122` and `60204` with a `300`-second (5-minute) timeout.
+* Validated XML configuration syntax using `wazuh-analysisd -t` and restarted `wazuh-manager`.
+
+### 2. Executed SMB Brute-Force Simulation & Verified Containment
+* Simulated an SMB authentication attack from Kali Linux (`192.168.56.101`) against `Win-DC01` (`192.168.56.10`) using `netexec`.
+* Verified on `Win-DC01` via `Get-NetFirewallRule` that Wazuh dynamically created Inbound and Outbound Windows Defender Firewall block rules (`WAZUH ACTIVE RESPONSE BLOCKED IP`) and logged `netsh.exe` execution in `active-responses.log`.
+* Confirmed buffered Windows `Event ID 4625` (`Rule 60122`) and `active_response` group events flushed into Wazuh Threat Hunting once the firewall block cleared and agent communication resumed on port `1514`.
+
+### 3. Completed Guide 06 & Full Portfolio Link Audit
+* Documented **Guide 06: Automated Incident Response & Active Containment** with end-to-end verification screenshots and engineering lessons learned.
+* Audited and repaired all relative Markdown links and image embeds across `README.md` and **Guides 01–06** so the repository is ready for portfolio/resume review.
+
+---
+
+## 🔧 Troubleshooting & Engineering Notes
+* **CIS Account Lockout Interaction:** Running `netexec` against `-u Administrator` triggered Windows' local 15-minute CIS Account Lockout Policy alongside the 5-minute Wazuh firewall block. Switched test validation to a non-existent user (`-u fakeuser`) to trigger `Event ID 4625` (`Rule 60122`) safely without locking out administrative access.
+* **Multi-Threaded Probe Cleanup:** Rapid `netexec` connection probes generated simultaneous `add` triggers within the same second; verified cleanup using `Remove-NetFirewallRule -DisplayName "*WAZUH*"` and confirmed restored connectivity via ICMP `ping`.
