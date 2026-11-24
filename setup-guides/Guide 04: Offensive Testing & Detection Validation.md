@@ -28,7 +28,7 @@ netexec smb 192.168.56.10 -u '' -p '' --shares
   * **Share Enumeration Blocked (`STATUS_ACCESS_DENIED`):** Prevents unauthenticated users from listing domain shares (`SYSVOL`, `NETLOGON`).
 * **Security Observation (`Null Auth:True`):** SMB null session authentication succeeded (`[+] Company.local\:`) at the protocol level, generating an `ANONYMOUS LOGON` (`Logon Type 3`) network event.
 
-![Phase 1 NetExec SMB Recon](images/04-phase1-netexec-recon.png)
+<img width="1564" height="856" alt="04 - Recon Findings" src="https://github.com/user-attachments/assets/fd7397a2-1a93-4104-a227-80887c6274cc" />
 
 ---
 
@@ -44,10 +44,13 @@ for p in \$(cat passwords.txt); do smbclient -L //192.168.56.10 -U "Company.loca
 * Initial spray attempts with `netexec` and `hydra` (`smb://`) encountered timeouts/protocol errors due to **Windows Server 2025's** hardened SMBv3 + NTLMv2 enforcement.
 * Pivoted to `smbclient`, which natively negotiates SMBv3 + NTLMv2, executing 4 controlled login attempts (`NT_STATUS_LOGON_FAILURE`) without triggering the domain account lockout threshold.
 
+<img width="1605" height="562" alt="04 - Hydra PW Attempts" src="https://github.com/user-attachments/assets/e4a76cca-21f3-49d0-a69c-f7ed25124953" />
+
 **Wazuh SIEM Detection Verified:**
 * **Wazuh Rule `60122` (Level 5):** *Logon Failure - Unknown user or bad password* (4 consecutive alerts logged between `23:06:32` and `23:06:38`, capturing Windows **Event ID 4625**, `Logon Type 3`, and attacker IP `192.168.56.101`).
 
-![Phase 2 Wazuh Rule 60122 Failed Logons](images/04-phase2-wazuh-60122.png)
+<img width="1713" height="1252" alt="04- Wazuh Detection of failed attempts" src="https://github.com/user-attachments/assets/32bb294b-8d0b-4dfa-bc6c-9366e886e6a0" />
+
 ---
 
 ## 📂 Phase 3: Payload Drop & File Integrity Monitoring (MITRE T1105 / T1565)
@@ -71,7 +74,8 @@ Add-Content -Path "C:\Windows\System32\drivers\etc\hosts" -Value "`n192.168.56.1
 * **Wazuh Rule `92213` (Level 15):** *Executable file dropped in folder commonly used by malware* (Critical-severity Sysmon detection).
 * **Tuning Observation:** Identified `Rule 61640` (*Sysmon - Suspicious Process - explorer.exe*, Level 12) firing on benign Explorer activity—flagged as a candidate for allowlist tuning.
 
-![Phase 3 Wazuh Sysmon Payload Drop Alerts](images/04-phase3-wazuh-92207-92213.png)
+<img width="3423" height="1173" alt="04- Alert on Wazuh " src="https://github.com/user-attachments/assets/ad4ff909-4e8e-4fd0-96ef-0eebc68a8860" />
+
 ---
 
 ## ⚙️ Phase 4: Encoded PowerShell Execution & Registry Persistence (MITRE T1059.001 / T1547.001)
@@ -86,11 +90,7 @@ reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Run" /v "UpdaterService"
 * **Wazuh Rule `92066` (Level 4):** *`whoami.exe` binary in a suspicious location launched by `powershell.exe`* (`Sysmon Event ID 1` process creation tracking parent-child execution from Base64-encoded PowerShell).
 * **Registry Persistence Monitoring:** Verified `HKCU\...\Run` modification telemetry and restored all modified files/registry keys during post-test cleanup.
 
-<img width="1713" height="1252" alt="04- Wazuh Detection of failed attempts" src="https://github.com/user-attachments/assets/32bb294b-8d0b-4dfa-bc6c-9366e886e6a0" />
-<img width="3423" height="1173" alt="04- Alert on Wazuh " src="https://github.com/user-attachments/assets/ad4ff909-4e8e-4fd0-96ef-0eebc68a8860" />
 <img width="3427" height="1143" alt="04 - Rule ID 92066_Rule ID 92213" src="https://github.com/user-attachments/assets/09edfde7-d01e-43aa-ad2b-410f568410d3" />
-<img width="1564" height="856" alt="04 - Recon Findings" src="https://github.com/user-attachments/assets/fd7397a2-1a93-4104-a227-80887c6274cc" />
-<img width="1605" height="562" alt="04 - Hydra PW Attempts" src="https://github.com/user-attachments/assets/e4a76cca-21f3-49d0-a69c-f7ed25124953" />
 
 ---
 
@@ -98,4 +98,3 @@ reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Run" /v "UpdaterService"
 1. **Defense-in-Depth Validation:** Testing against Windows Server 2025 demonstrated how enforced SMBv3/NTLMv2 signing blocks legacy attack tools, while Windows Defender + Sysmon + Wazuh FIM provide layered prevention and detection.
 2. **High-Fidelity Sysmon Detections:** Sysmon Event IDs `1` and `11` mapped directly to high-severity Wazuh rules (`92207`, `92213`, `92066`), catching payload drops in `C:\Users\Public\` and encoded PowerShell child processes immediately.
 3. **Ongoing False-Positive Tuning:** Observing benign triggers like `Rule 61640` (`explorer.exe`) reinforced that SIEM tuning is continuous—even after initial baseline filtering.
-
