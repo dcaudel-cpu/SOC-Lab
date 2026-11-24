@@ -48,4 +48,4 @@ graph LR
 * **Environment Isolation & Snapshots:** Configured VirtualBox isolated networking (`192.168.56.0/24`) and established clean recovery snapshots prior to offensive testing.
 * **Active Directory & Telemetry Engineering:** Promoted `Win-DC01` to a Windows Server 2025 Domain Controller (`Company.local`) and integrated Microsoft Sysmon and Wazuh FIM (`syscheck`) for real-time process, network, and registry monitoring.
 * **Adversary Simulation & Detection Validation:** Executed reconnaissance, SMB enumeration, payload generation, encoded PowerShell, and registry persistence from Kali Linux, mapping detections to MITRE ATT&CK in Wazuh.
-* **Alert Tuning & CIS Hardening:** Eliminated false-positive alert fatigue (Rule 61618 `svchost.exe`) via `local_rules.xml` and remediated domain vulnerabilities via GPOs, improving compliance from the **25% CIS baseline**.
+* **Alert Tuning & CIS Hardening:** Eliminated false-positive alert fatigue (Rule 61618 `svchost.exe`) via `local_rules.xml` and remediated domain vulnerabilities via GPOs, improving compliance from the **25% CIS baseline to 27% after hardening**.
