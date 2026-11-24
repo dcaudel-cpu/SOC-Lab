@@ -56,7 +56,8 @@ In this phase of the homelab, we transition from passive detection to **automate
 2. **Observe Automated Containment:**
    `netexec` initially resolves the SMB banner for `DC-COMPANY`, then immediately stalls with connection timeouts (`The NETBIOS connection with the remote host timed out`) as Windows Defender Firewall drops all subsequent packets from Kali's IP.
 
-   ![Kali SMB Brute-Force Blocked](../Images/06-01-netexec-smb-bruteforce-blocked.png.png)
+   <img width="1657" height="900" alt="06-01-netexec-smb-bruteforce-blocked png" src="https://github.com/user-attachments/assets/f41f491b-0b5a-48dd-a871-c2bd4a789bdc" />
+
 
 ---
 
