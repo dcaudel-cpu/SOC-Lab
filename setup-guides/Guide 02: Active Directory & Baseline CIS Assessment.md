@@ -106,7 +106,7 @@ By default, Wazuh evaluates routine Sysmon telemetry at **Level 0** (below the d
 ---
 
 ## 📸 Verification Screenshots
-![Sysmon Telemetry from Kali to Windows VM](<../Images/02-Sysmon Telemetry from Kali to Windows VM.png>)
+![Sysmon Telemetry from Kali to Windows VM](../Images/02-Sysmon%20Telemetry%20from%20Kali%20to%20Windows%20VM.png)
 
 ![Sysmon Alerts in Wazuh Dashboard](../Images/02-wazuh-sysmon-alerts.png)
 
