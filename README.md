@@ -21,12 +21,14 @@ All virtual machines run inside Oracle VirtualBox on an isolated Host-Only Netwo
 
 ## 📂 Repository Structure
 
-* `setup-guides/` — Step-by-step installation and configuration guides:
-  * **Guide 01: Lab Architecture & Virtual Network Setup** – Isolated Host-Only network (`192.168.56.0/24`), Windows Server 2025 Domain Controller (`Win-DC01`), Wazuh SIEM, and Kali Linux setup.
-  * **Guide 02: Active Directory & Baseline CIS Assessment** – Domain configuration (`Company.local`), organizational units, and initial CIS Benchmark scan (25% baseline score).
-  * **Guide 03: Sysmon Deployment & File Integrity Monitoring (FIM)** – Enhanced Windows endpoint telemetry via Sysmon, Wazuh `syscheck` configuration for real-time file/registry monitoring, and baseline alert tuning.
-  * **Guide 04: Offensive Testing & Detection Validation** – Multi-stage adversary simulations from Kali Linux (`nmap`, `netexec`, `smbclient`, `msfvenom`, encoded PowerShell, registry persistence) mapped to MITRE ATT&CK and verified in Wazuh.
-  * **Guide 05: Security Hardening, Alert Tuning & CIS Benchmark Re-Scan** – Post-simulation artifact cleanup, granular Wazuh `local_rules.xml` tuning (`Rule 61618`), Active Directory GPO hardening, and CIS Benchmark compliance verification (27% score).
+## 📂 Repository Structure
+
+* [`setup-guides/`](setup-guides/) — Step-by-step installation and configuration guides:
+  * **[Guide 01: Lab Architecture & Virtual Network Setup](setup-guides/01-lab-architecture.md)** – Isolated Host-Only network (`192.168.56.0/24`), Windows Server 2025 Domain Controller (`Win-DC01`), Wazuh SIEM, and Kali Linux setup.
+  * **[Guide 02: Active Directory & Baseline CIS Assessment](setup-guides/02-ad-cis-baseline.md)** – Domain configuration (`Company.local`), organizational units, and initial CIS Benchmark scan (25% baseline score).
+  * **[Guide 03: Sysmon Deployment & File Integrity Monitoring (FIM)](setup-guides/03-sysmon-fim.md)** – Enhanced Windows endpoint telemetry via Sysmon, Wazuh `syscheck` configuration for real-time file/registry monitoring, and baseline alert tuning.
+  * **[Guide 04: Offensive Testing & Detection Validation](setup-guides/04-offensive-testing.md)** – Multi-stage adversary simulations from Kali Linux (`nmap`, `netexec`, `smbclient`, `msfvenom`, encoded PowerShell, registry persistence) mapped to MITRE ATT&CK and verified in Wazuh.
+  * **[Guide 05: Security Hardening, Alert Tuning & CIS Benchmark Re-Scan](setup-guides/05-hardening-tuning.md)** – Post-simulation artifact cleanup, granular Wazuh `local_rules.xml` tuning (`Rule 61618`), Active Directory GPO hardening, and CIS Benchmark compliance verification (27% score).
 
 ## ✅ Completed Milestones & Key Takeaways
 
