@@ -62,7 +62,7 @@ sudo /var/ossec/bin/wazuh-analysisd -t
 sudo systemctl restart wazuh-manager
 ```
 
-![Local Rules Tuning](../Images/05%20-%20Local_rules.xml.png)
+<img alt="Local Rules Tuning" src="../Images/05 - Local_rules.xml.png" />
 
 ---
 
@@ -91,7 +91,7 @@ Mitigates brute-force and password spraying attacks (`netexec smb`).
   * Account lockout duration: **15 minutes**
   * Reset account lockout counter after: **15 minutes**
 
-![Password Policy Hardening](../Images/05%20-%20Phase%202%20PW%20Hardening.png)
+<img alt="Password Policy Hardening" src="../Images/05 - Phase 2 PW Hardening.png" />
 
 ### 3. Restrict Anonymous Enumeration
 Blocks null-session enumeration of domain users and shares.
@@ -100,7 +100,7 @@ Blocks null-session enumeration of domain users and shares.
   * `Network access: Do not allow anonymous enumeration of SAM accounts` -> **Enabled**
   * `Network access: Do not allow anonymous enumeration of SAM accounts and shares` -> **Enabled**
 
-![Active Directory Security Options Hardening](../Images/05%20-%20Active%20Directory%20Hardening.png)
+<img alt="Active Directory Security Options Hardening" src="../Images/05 - Active Directory Hardening.png" />
 
 ### 4. PowerShell Constrained Language Mode & Script Block Logging
 Neutralizes obfuscated/encoded PowerShell payloads and ensures full command visibility in Wazuh.
@@ -127,11 +127,11 @@ netexec smb 192.168.56.10 -u '' -p '' --shares
 ```
 * **Expected Result:** Anonymous share enumeration is denied (`STATUS_ACCESS_DENIED`), and `signing:True` is enforced.
 
-![Re-Test Anonymous SMB & SAMR Enumeration](../Images/05%20-%20Re-Test%20Anonymous%20SMB%20%26%20SAMR%20Enumeration%20%28Attack%20Validation%29.png)
+<img alt="Re-Test Anonymous SMB & SAMR Enumeration" src="../Images/05 - Re-Test Anonymous SMB & SAMR Enumeration (Attack Validation).png" />
 
-![Account Lockout Validation on Kali](../Images/05-%20Account%20lockout%20test%20Kali.png)
+<img alt="Account Lockout Validation on Kali" src="../Images/05- Account lockout test Kali.png" />
 
-![Wazuh Account Lockout Alert](../Images/05%20-%20Wazuh%20lockout%20alert.png)
+<img alt="Wazuh Account Lockout Alert" src="../Images/05 - Wazuh lockout alert.png" />
 
 ### 2. Execute CIS Benchmark Re-Scan (Wazuh SCA)
 1. Restart the Wazuh Agent on `Win-DC01` to trigger an immediate Security Configuration Assessment (SCA) scan:
@@ -146,10 +146,11 @@ Restart-Service -Name WazuhSvc
 ### CIS Benchmark Re-Scan Results (25% -> 27%)
 After enforcing the targeted Group Policy hardening controls and restarting the Wazuh Agent on `Win-DC01`, the Security Configuration Assessment (SCA) re-scan confirmed an increase in compliance from **25% to 27%**.
 
-![CIS Benchmark SCA Increase to 27%](../Images/05%20-%20SCA%20increase%20to%2027%25.png)
+<img alt="CIS Benchmark SCA Increase to 27%" src="../Images/05 - SCA increase to 27%.png" />
 
 #### Why Risk-Based Remediation Was Prioritized Over Score Chasing
 * **Targeted Attack-Path Closure:** Rather than blindly applying hundreds of restrictive CIS member-server checks that risk breaking Active Directory authentication, DNS, or replication, remediation focused strictly on closing the high-severity attack vectors exploited in **Guide 04** (`netexec` null-session enumeration, SMB relay, credential brute-forcing, and unlogged PowerShell execution).
 * **Operational Availability:** Because CIS Windows Server policies contain over 300 granular checks, resolving critical SMB, authentication, and logging vulnerabilities yields a measured percentage increase while maintaining 100% Domain Controller stability.
+
 
 
