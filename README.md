@@ -26,6 +26,7 @@ All virtual machines run inside Oracle VirtualBox on an isolated Host-Only Netwo
 * **[Guide 03: Sysmon Deployment & File Integrity Monitoring (FIM)](./Guide%2003:%20Sysmon%20Deployment%20&%20File%20Integrity%20Monitoring%20%28FIM%29.md)** – Enhanced Windows endpoint telemetry via Sysmon, Wazuh `syscheck` configuration for real-time file/registry monitoring, and baseline alert tuning.
 * **[Guide 04: Offensive Testing & Detection Validation](./Guide%2004:%20Offensive%20Testing%20&%20Detection%20Validation.md)** – Multi-stage adversary simulations from Kali Linux (`nmap`, `netexec`, `smbclient`, `msfvenom`, encoded PowerShell, registry persistence) mapped to MITRE ATT&CK and verified in Wazuh.
 * **[Guide 05: Security Hardening, Alert Tuning & CIS Benchmark Re-Scan](./Guide%2005:%20Security%20Hardening,%20Alert%20Tuning%20&%20CIS%20Benchmark%20Re-Scan.md)** – Post-simulation artifact cleanup, granular Wazuh `local_rules.xml` tuning (`Rule 61618`), Active Directory GPO hardening, and CIS Benchmark compliance verification (27% score).
+* **[Guide 06: Automated Incident Response & Active Containment](./Guide%2006:%20Automated%20Incident%20Response%20&%20Active%20Containment.md)** – Automated threat containment via Wazuh Active Response (`firewall-drop`), SMB brute-force simulation (`netexec`), dynamic Windows Firewall enforcement, and timed block validation.
 
 ## ✅ Completed Milestones & Key Takeaways
 
